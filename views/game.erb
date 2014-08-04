@@ -1,35 +1,41 @@
 <h1>Welcome to Blackjack!</h1>
 
-<p>
-  <h3>Dealer cards (Total <%= get_total(session[:dealer_hand]) %>):</h3>
+<div class="well">
+  <h3>Dealer cards<% if session[:turn] != :player %> (Total <%= get_total(session[:dealer_hand])%>)<% end %>:</h3>
+  <% first_card = true %>
   <% session[:dealer_hand].each do |card| %>
+  <% if session[:turn] == :player && first_card %>
+  <img src="../images/cards/cover.jpg" style="margin:0px 5px 5px 0px">
+  <% first_card = false %>
+  <% else %>
   <img src="../images/cards/<%= image_name(card) %>" style="margin:0px 5px 5px 0px">
   <% end %>
-</p>
+  <% end %>
+</div>
 
-<p>
+<div class="well">
   <h3>Player cards (Total <%= get_total(session[:player_hand]) %>):</h3>
   <% session[:player_hand].each do |card| %>
   <img src="../images/cards/<%= image_name(card) %>" style="margin:0px 5px 5px 0px">
   <% end %>
-</p>
+</div>
 
 <p>
   Action:
   <% if session[:turn] == :player %>
   <form action="/player/hit" method="post">
-    <button type="submit" class="btn btn-success">Hit</button>
+    <button type="submit" class="btn btn-success btn-large">Hit</button>
   </form>
   <form action="/player/stay" method="post">
-    <button type="submit" class="btn btn-warning">Stay</button>
+    <button type="submit" class="btn btn-warning btn-large">Stay</button>
   </form>
   <% elsif session[:turn] == :dealer %>
-  <form action="/player/dealer_next" method="post">
-    <button type="submit" class="btn">Next Card</button>
+  <form action="/dealer/next" method="post">
+    <button type="submit" class="btn btn-large">Next Card</button>
   </form>
   <% else %>
   <form action="/game" method="get">
-    <button type="submit" class="btn">New Game</button>
+    <button type="submit" class="btn btn-large">New Game</button>
   </form>
   <% end %>
 </p>
