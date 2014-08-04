@@ -1,0 +1,39 @@
+<h1>Welcome to Blackjack!</h1>
+
+<p>
+  <h3>Dealer cards (Total <%= get_total(session[:dealer_hand]) %>):</h3>
+  <ul>
+  <% session[:dealer_hand].each do |card| %>
+  <li><%= card_name(card) %></li>
+  <% end %>
+  </ul>
+</p>
+
+<p>
+  <h3>Player cards (Total <%= get_total(session[:player_hand]) %>):</h3>
+  <ul>
+  <% session[:player_hand].each do |card| %>
+  <li><%= card_name(card) %></li>
+  <% end %>
+  </ul>
+</p>
+
+<p>
+  Action:
+  <% if session[:turn] == :player %>
+  <form action="/player/hit" method="post">
+    <button type="submit" class="btn btn-success">Hit</button>
+  </form>
+  <form action="/player/stay" method="post">
+    <button type="submit" class="btn btn-warning">Stay</button>
+  </form>
+  <% elsif session[:turn] == :dealer %>
+  <form action="/player/dealer_next" method="post">
+    <button type="submit" class="btn">Next Card</button>
+  </form>
+  <% else %>
+  <form action="/game" method="get">
+    <button type="submit" class="btn">New Game</button>
+  </form>
+  <% end %>
+</p>
