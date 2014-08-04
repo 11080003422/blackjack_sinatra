@@ -56,6 +56,36 @@ helpers do
     card_name + ' of ' + suit_name
   end
 
+  def image_name(card)
+    # Set the suit name
+    case card[:suit]
+    when 1
+      suit_name = 'spades'
+    when 2
+      suit_name = 'hearts'
+    when 3
+      suit_name = 'diamonds'
+    when 4
+      suit_name = 'clubs'
+    end
+
+    # Set the card name
+    case
+    when card[:num] == 1
+      card_name = 'ace'
+    when card[:num] <= 10
+      card_name = card[:num].to_s
+    when card[:num] == 11
+      card_name = 'jack'
+    when card[:num] == 12
+      card_name = 'queen'
+    when card[:num] == 13
+      card_name = 'king'        
+    end
+
+    suit_name + "_" + card_name + ".jpg"
+  end
+
   def get_total(hand)
     sum = 0
     hand.each {|card| sum += card[:val]}

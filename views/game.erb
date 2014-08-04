@@ -2,20 +2,16 @@
 
 <p>
   <h3>Dealer cards (Total <%= get_total(session[:dealer_hand]) %>):</h3>
-  <ul>
   <% session[:dealer_hand].each do |card| %>
-  <li><%= card_name(card) %></li>
+  <img src="../images/cards/<%= image_name(card) %>" style="margin:0px 5px 5px 0px">
   <% end %>
-  </ul>
 </p>
 
 <p>
   <h3>Player cards (Total <%= get_total(session[:player_hand]) %>):</h3>
-  <ul>
   <% session[:player_hand].each do |card| %>
-  <li><%= card_name(card) %></li>
+  <img src="../images/cards/<%= image_name(card) %>" style="margin:0px 5px 5px 0px">
   <% end %>
-  </ul>
 </p>
 
 <p>
