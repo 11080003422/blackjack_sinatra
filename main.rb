@@ -95,7 +95,7 @@ helpers do
     sum
   end
 
-  def initialize_game(deck, player_hand, dealer_hand)
+  def deal_cards(deck, player_hand, dealer_hand)
     player_hand << get_card(deck)
     dealer_hand << get_card(deck)
     player_hand << get_card(deck)
@@ -129,19 +129,66 @@ helpers do
 
     's' # stand
   end
+
+  def player_wins(msg)
+    session[:turn] = nil
+    @success = msg
+    session[:player_cash] += session[:bet_amount] * 2
+  end
+
+  def player_loses(msg)
+    session[:turn] = nil
+    @error = msg
+  end
+
+  def tie(msg)
+    session[:turn] = nil
+    @neutral = msg
+    session[:player_cash] += session[:bet_amount]
+  end
+
+  def reset_game
+    session.clear
+  end
 end
 
 get '/' do
-  if session[:player_name].to_s == ''
-    redirect '/set_name'
-  else
-    redirect '/game'
-  end
+  redirect '/game'
 end
 
 get '/set_name' do
   erb :set_name
 end
+
+get '/bet' do
+  if session[:player_cash] == 0
+    reset_game
+    redirect '/game'
+  end
+
+  erb :bet
+end
+
+get '/reset' do
+  reset_game
+  redirect '/game'
+end
+
+post '/bet' do
+  if params[:bet_amount].to_i > session[:player_cash]
+    @error = "You don't have that much money."
+    redirect '/bet'
+  end
+
+  if params[:bet_amount].to_i <= 0
+    @error = "You need to bet more than that."
+    redirect '/bet'
+  end
+
+  session[:bet_amount] = params[:bet_amount].to_i
+  session[:player_cash] -= session[:bet_amount]
+  redirect '/game'
+end  
 
 post '/set_name' do
   if params[:player_name].strip.empty?
@@ -154,13 +201,16 @@ post '/set_name' do
 end
 
 get '/game' do
+  if session[:player_name].nil?
+    session[:player_cash] = 500
+    session[:bet_amount] = 0
+    redirect '/set_name'
+  end
+
   if session[:turn].nil? || (session[:turn] != :player && session[:turn] != :dealer && session[:turn] != :endgame)
     session[:turn] = :player
     session[:player_hand] = []
-  end
-
-  if session[:player_name].nil?
-    redirect '/set_name'
+    redirect '/bet'
   end
 
   if session[:player_hand].nil? || session[:player_hand].empty?
@@ -168,43 +218,40 @@ get '/game' do
     session[:player_hand] = []
     session[:dealer_hand] = []
 
-    initialize_game(session[:deck], session[:player_hand], session[:dealer_hand])
+    deal_cards(session[:deck], session[:player_hand], session[:dealer_hand])
   end
 
   if session[:turn] == :player
     if is_busted?(session[:player_hand])
-      session[:turn] = nil
-      @error = "You are busted, dealer won."
+      player_loses "You are busted, dealer won."
+    end
+
+    if has_blackjack?(session[:player_hand]) && has_blackjack(session[:dealer_hand])
+      tie "Two blackjacks, it's a tie!"
     end
 
     if has_blackjack?(session[:player_hand])
-      session[:turn] = nil
-      @success = "Blackjack, you won!"
+      player_wins "Blackjack, you won!"
     end
   end
 
   if session[:turn] == :dealer
     if is_busted?(session[:dealer_hand])
-      session[:turn] = nil
-      @success = "You won, dealer busted."
+      player_wins "You won, dealer busted."
     end
 
     if has_blackjack?(session[:dealer_hand])
-      session[:turn] = nil
-      @error = "Dealer got blackjack, you lost."
+      player_loses "Dealer got blackjack, you lost."
     end
   end
 
   if session[:turn] == :endgame
     if get_total(session[:player_hand]) < get_total(session[:dealer_hand])
-      session[:turn] = nil
-      @error = "You lost."
+      player_loses "You lost."
     elsif get_total(session[:player_hand]) > get_total(session[:dealer_hand])
-      session[:turn] = nil
-      @success = "You won."
+      player_wins "You won."
     else
-      session[:turn] = nil
-      @neutral = "It's a tie."
+      tie "It's a tie."
     end
   end
 
@@ -227,6 +274,9 @@ end
 post '/dealer/next' do
   if decide_dealer_action(session[:dealer_hand], session[:player_hand]) == 'h'
     session[:dealer_hand] << get_card(session[:deck])
+    if get_total(session[:dealer_hand]) >= get_total(session[:player_hand])
+      session[:turn] = :endgame
+    end
     redirect '/game'
   else
     session[:turn] = :endgame

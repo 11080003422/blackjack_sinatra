@@ -20,6 +20,8 @@
   <% end %>
 </div>
 
+<p>You bet <%= session[:bet_amount] %>, and you have <%= session[:player_cash] %> left.</p>
+
 <p>
   Action:
   <% if session[:turn] == :player %>
